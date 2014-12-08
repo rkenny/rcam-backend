@@ -8,17 +8,16 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import tk.bad_rabbit.App;
 import tk.bad_rabbit.model.Video;
 
 @Path(value = "/videos")
 public class Videos {
-  ObjectMapper mapper = new ObjectMapper();
-  
+ ObjectMapper mapper = new ObjectMapper();
   
   @GET
   public String sendVideoList() {
