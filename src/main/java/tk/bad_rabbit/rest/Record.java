@@ -34,7 +34,8 @@ public class Record {
       return Response.status(500).entity("Recording error").build();
     }
     
-
+    VideoMosaicer videoMosaicer = new VideoMosaicer(videoSources);
+    videoMosaicer.buildMosaic();
     
     return Response.status(200).entity(recorder.toString()).build();
   }
