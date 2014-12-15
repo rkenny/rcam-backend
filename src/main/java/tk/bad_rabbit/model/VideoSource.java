@@ -66,7 +66,6 @@ public class VideoSource {
           System.out.println("running cvlc failed");
         }
       }
-
     }).start();
   }
 }

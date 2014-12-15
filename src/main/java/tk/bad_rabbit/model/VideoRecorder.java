@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,6 +25,10 @@ public class VideoRecorder implements Serializable {
   
   public VideoRecorder() {
     videoSources = new ArrayList<VideoSource>();
+  }
+  
+  public void setVideoSources(List<VideoSource> videoSources) {
+    this.videoSources = videoSources;
   }
   
   public void addVideoSource(VideoSource videoSource) {
@@ -50,9 +55,12 @@ public class VideoRecorder implements Serializable {
   }
   // 
 
-  public void beginRecording() {
+  public void beginRecording() throws InterruptedException {
+    CountDownLatch doneRecording = new CountDownLatch(videoSources.size());
+    
     for(VideoSource videoSource : videoSources) {
       videoSource.beginRecording(duration);
     }
+    doneRecording.await();
   }
 }
