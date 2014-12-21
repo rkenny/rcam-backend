@@ -3,7 +3,10 @@ package tk.bad_rabbit.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
+
+import tk.bad_rabbit.vlc.VlcRunnable;
 
 public class VideoMosaicer {
   List<VideoSource> videoSources; // needs to build a VLM for these. Give the VideoSource access to the stream's position?
@@ -20,7 +23,6 @@ public class VideoMosaicer {
 
   
   public void buildMosaic() {
-    final String vlcPath = "/usr/bin/cvlc";
     final String vlmPath = "mosaic.vlm.conf";
     final Integer mosaicWidth=960;
     final Integer mosaicHeight=640;
@@ -31,43 +33,34 @@ public class VideoMosaicer {
     final Integer imageFps=15;
     final String telnetPassword="password";
     
-    final String[] args = {vlcPath, 
-                      "--rc-fake-tty", 
-                      //"--run-time", duration.toString(), 
-                      "--telnet-password", telnetPassword,
-                      "--vlm-conf", vlmPath,
-                      "--mosaic-width", mosaicWidth.toString(),
-                      "--mosaic-height", mosaicHeight.toString(),
-                      "--mosaic-keep-picture",
-                      "--mosaic-rows", mosaicRows.toString(),
-                      "--mosaic-cols", mosaicCols.toString(),
-                      "--mosaic-position", mosaicPosition.toString(),
-                      "--mosaic-order", mosaicOrder,
-                      "--image-fps", imageFps.toString()
-                    };
     
-    new Thread(new Runnable() {
-      public void run() {
-        System.out.println("Running cvlc thread. Creating mosaic.");
-        String line;
-        try {
-          ProcessBuilder pb = new ProcessBuilder(args);
-          pb.redirectErrorStream(true);
-          Process p = pb.start();
-            
-          BufferedReader input = new BufferedReader (new InputStreamReader(p.getInputStream()));
-          
-          while ((line = input.readLine()) != null) {
-//            System.out.println(line);
-          }
-          input.close();
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-          System.out.println("running cvlc failed");
-        }
-      }
-    }).start();
+    List<String> args = new ArrayList<String>();
+    args.add("--rc-fake-tty"); 
+//    args.add("--run-time", duration.toString()); 
+    args.add("--telnet-password");
+    args.add(telnetPassword);
+    args.add("--vlm-conf");
+    args.add(vlmPath);
+    args.add("--mosaic-width");
+    args.add(mosaicWidth.toString());
+    args.add("--mosaic-height");
+    args.add(mosaicHeight.toString());
+    args.add("--mosaic-keep-picture");
+    args.add("--mosaic-rows");
+    args.add(mosaicRows.toString());
+    args.add("--mosaic-cols");
+    args.add(mosaicCols.toString());
+    args.add("--mosaic-position");
+    args.add(mosaicPosition.toString());
+    args.add("--mosaic-order");
+    args.add(mosaicOrder);
+    args.add("--image-fps");
+    args.add(imageFps.toString());
+    final String description = "Creating mosaic";
+    
+    Thread vlcThread = new Thread(new VlcRunnable(description, args));
+    vlcThread.start(); 
+   
   }
 
 }

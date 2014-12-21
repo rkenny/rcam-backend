@@ -51,16 +51,20 @@ public class VideoRecorder implements Serializable {
   
   @Override
   public String toString() {
-    return "ok it worked. video will record for " + duration + " seconds";
+    return "Video will record for " + duration + " seconds";
   }
   // 
 
   public void beginRecording() throws InterruptedException {
-    CountDownLatch doneRecording = new CountDownLatch(videoSources.size());
+    CountDownLatch startLatch = new CountDownLatch(1);
+    CountDownLatch shutdownLatch = new CountDownLatch(videoSources.size());
     
     for(VideoSource videoSource : videoSources) {
-      videoSource.beginRecording(duration);
+//      videoSource.beginRecording(duration);
+      videoSource.getLatchedRecordingThread(duration, startLatch, shutdownLatch).start();
     }
-    doneRecording.await();
+    Thread.sleep(200);
+    startLatch.countDown();
+    shutdownLatch.await();    
   }
 }

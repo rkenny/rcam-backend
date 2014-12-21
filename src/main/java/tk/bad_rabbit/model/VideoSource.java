@@ -3,7 +3,13 @@ package tk.bad_rabbit.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+import tk.bad_rabbit.vlc.VlcRunnable;
+import tk.bad_rabbit.vlc.VlcThread;
 
 public class VideoSource {
   private String videoSource;
@@ -35,37 +41,27 @@ public class VideoSource {
     this.videoSource = videoSource;
   }
   
-  public void beginRecording(Integer duration) {
-    final String vlcPath = "/usr/bin/cvlc";
-    final String[] args = {vlcPath, 
-                      "--rc-fake-tty", 
-                      "--run-time", duration.toString(), 
-                      videoSource, 
-                      "vlc://quit", 
-                      "--sout", "#transcode{vcodec=mp4v,acodec=mpga,vb=800}:std{access=file,mux=ts,dst="+destFileName+"}"
-                    };
-    
-    new Thread(new Runnable() {
-      public void run() {
-        System.out.println("Running cvlc thread. VideoSource:["+videoSource+"] destFile:["+destFileName+"]");
-        String line;
-        try {
-          ProcessBuilder pb = new ProcessBuilder(args);
-          pb.redirectErrorStream(true);
-          Process p = pb.start();
-            
-          BufferedReader input = new BufferedReader (new InputStreamReader(p.getInputStream()));
-          
-          while ((line = input.readLine()) != null) {
-//            System.out.println(line);
-          }
-          input.close();
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-          System.out.println("running cvlc failed");
-        }
-      }
-    }).start();
+  public VlcRunnable createVlcRunnable(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
+    List<String> args = new ArrayList<String>();
+    args.add("--rc-fake-tty");
+    args.add("--run-time");
+    args.add(duration.toString());
+    args.add(videoSource);
+    args.add("vlc://quit");
+    args.add("--sout");
+    args.add("#transcode{vcodec=mp4v,acodec=mpga,vb=800}:std{access=file,mux=ts,dst="+destFileName+"}");
+
+    final String description =  "VideoSource:["+videoSource+"] destFile:["+destFileName+"]";
+    return new VlcRunnable(description, args, startLatch, shutdownLatch);
   }
+  
+  public Thread getLatchedRecordingThread(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
+    return new Thread(createVlcRunnable(duration, startLatch, shutdownLatch));
+  }
+  
+//  public void beginRecording(Integer duration) {
+//    Thread vlcThread = new Thread(createVlcRunnable(duration));
+//    vlcThread.start();
+//    
+//  }
 }
