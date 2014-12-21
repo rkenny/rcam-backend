@@ -1,20 +1,22 @@
 package tk.bad_rabbit.model;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import tk.bad_rabbit.interfaces.Cleanup;
 import tk.bad_rabbit.vlc.VlcRunnable;
-import tk.bad_rabbit.vlc.VlcThread;
 
-public class VideoSource {
+public class VideoSource implements Cleanup {
   private String videoSource;
   private String destFileName;
-  
+  private String channelId;
+  private Integer videoSourceId;
+  private static Integer VideoSourceIdCount = 0;
   public VideoSource(String videoSource, String destFileName) {
     this(videoSource);
     setDestFileName(destFileName);
@@ -27,6 +29,8 @@ public class VideoSource {
   }
 
   public VideoSource() {
+    this.videoSourceId = VideoSourceIdCount++;
+    this.channelId = "channel" + videoSourceId;
   }
   
   public void setDestFileName(String destFileName) {
@@ -39,6 +43,20 @@ public class VideoSource {
   
   public void setVideoSource(String videoSource) {
     this.videoSource = videoSource;
+  }
+  
+  public String getChannelId() {
+    return channelId;
+  }
+  
+  public String createVlmChannel() {
+    StringBuilder vlmChannelSb = new StringBuilder();
+    
+    vlmChannelSb.append("new " + channelId + " broadcast\n");
+    vlmChannelSb.append("setup " + channelId + " input \"" + destFileName + "\"\n");
+    vlmChannelSb.append("setup " + channelId + " output #duplicate{dst=mosaic-bridge{id="+videoSourceId+",height=640,width=480},select=video,dst=bridge-out{id="+videoSourceId+"},select=audio}\n");
+    vlmChannelSb.append("setup " + channelId + " enabled\n");
+    return vlmChannelSb.toString();
   }
   
   public VlcRunnable createVlcRunnable(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
@@ -55,13 +73,13 @@ public class VideoSource {
     return new VlcRunnable(description, args, startLatch, shutdownLatch);
   }
   
-  public Thread getLatchedRecordingThread(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
-    return new Thread(createVlcRunnable(duration, startLatch, shutdownLatch));
+  public void cleanup() {
+    try {
+      Files.deleteIfExists(FileSystems.getDefault().getPath(".", destFileName));
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
-  
-//  public void beginRecording(Integer duration) {
-//    Thread vlcThread = new Thread(createVlcRunnable(duration));
-//    vlcThread.start();
-//    
-//  }
+
 }

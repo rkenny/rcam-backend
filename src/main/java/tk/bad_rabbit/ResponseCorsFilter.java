@@ -1,7 +1,6 @@
 package tk.bad_rabbit;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;

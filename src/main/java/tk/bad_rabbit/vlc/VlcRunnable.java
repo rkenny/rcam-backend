@@ -12,7 +12,7 @@ public class VlcRunnable implements Runnable {
   List<String> args = new ArrayList<String>();
   final String vlcPath = "/usr/bin/cvlc";
   private CountDownLatch startLatch;
-  private CountDownLatch shutdownLatch;  
+  private CountDownLatch shutdownLatch;
   
   public VlcRunnable(String threadDescription, List<String> args, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
     this(threadDescription, args, startLatch);
@@ -43,13 +43,14 @@ public class VlcRunnable implements Runnable {
     String line;
 
     try {
+      System.out.println(args);
       ProcessBuilder pb = new ProcessBuilder(args.toArray(new String[args.size()]));
       pb.redirectErrorStream(true);
       Process p = pb.start();
       BufferedReader input = new BufferedReader (new InputStreamReader(p.getInputStream()));
     
       while ((line = input.readLine()) != null) {
-  //      System.out.println(line);
+        System.out.println(line);
       }
       input.close();
     } catch (IOException e) {

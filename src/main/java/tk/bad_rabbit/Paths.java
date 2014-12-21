@@ -13,4 +13,6 @@ public class Paths {
   private static final String CONTEXT = "base";
   
   public static final URI BASE_URI = URI.create("http://" + SERVER + ":" + PORT + "/" + CONTEXT + "/");
+  public static String resourcesDir = "./resources/";
+  public static String backgroundImagePath = resourcesDir + "bg.png";
 }

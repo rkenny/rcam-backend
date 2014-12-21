@@ -1,46 +1,56 @@
 package tk.bad_rabbit.model;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import tk.bad_rabbit.interfaces.Cleanup;
 import tk.bad_rabbit.vlc.VlcRunnable;
 
-public class VideoMosaicer {
-  List<VideoSource> videoSources; // needs to build a VLM for these. Give the VideoSource access to the stream's position?
-  public VideoMosaicer(List<VideoSource> videoSources) {
+public class VideoMosaicer implements Cleanup {
+  
+  final String outputPath = "outputs.mpg";
+  List<VideoSource> videoSources;
+  VideoMosaicConfigurator configurator;
+  Integer duration;
+  
+  final Integer mosaicWidth=960;
+  final Integer mosaicHeight=640;
+  final Integer mosaicRows=1;
+  final Integer mosaicCols=2;
+  final Integer mosaicPosition=1;
+  StringBuilder mosaicOrder = new StringBuilder();
+  final Integer imageFps=15;
+  final String telnetPassword="password";
+  
+  public VideoMosaicer(Integer duration, List<VideoSource> videoSources) {
+    this.duration = duration;
     this.videoSources = videoSources;
+    this.configurator = new VideoMosaicConfigurator(videoSources, outputPath);
   }
   
-  // This is the original command line
-  //vlc -vvv --color --telnet-password=password --vlm-conf ./mosaic.vlm.conf --mosaic-width=960 --mosaic-height=640 --mosaic-keep-picture --mosaic-rows=1 
-  //    --mosaic-cols=2 
-  //    --mosaic-position=1 
-  //    --mosaic-order=channel1,channel2 
-  //    --image-fps=15
-
+  public void createMosaic() {
+    configurator.createConfFile();
+    buildMosaic();
+  }
+  
+  public void cleanup() {
+    configurator.cleanup();
+  }
   
   public void buildMosaic() {
-    final String vlmPath = "mosaic.vlm.conf";
-    final Integer mosaicWidth=960;
-    final Integer mosaicHeight=640;
-    final Integer mosaicRows=1;
-    final Integer mosaicCols=2;
-    final Integer mosaicPosition=1;
-    final String mosaicOrder="channel1,channel2";
-    final Integer imageFps=15;
-    final String telnetPassword="password";
     
+    for(VideoSource videoSource : videoSources) {
+      mosaicOrder.append(videoSource.getChannelId() + ",");
+    }
+    mosaicOrder.deleteCharAt(mosaicOrder.length() - 1);
     
     List<String> args = new ArrayList<String>();
     args.add("--rc-fake-tty"); 
-//    args.add("--run-time", duration.toString()); 
     args.add("--telnet-password");
     args.add(telnetPassword);
     args.add("--vlm-conf");
-    args.add(vlmPath);
+    args.add(configurator.getVlmPath());
     args.add("--mosaic-width");
     args.add(mosaicWidth.toString());
     args.add("--mosaic-height");
@@ -53,14 +63,14 @@ public class VideoMosaicer {
     args.add("--mosaic-position");
     args.add(mosaicPosition.toString());
     args.add("--mosaic-order");
-    args.add(mosaicOrder);
+    args.add(mosaicOrder.toString());
     args.add("--image-fps");
     args.add(imageFps.toString());
+    args.add("vlc://pause:"+duration);
+    args.add("vlc://quit");
     final String description = "Creating mosaic";
-    
-    Thread vlcThread = new Thread(new VlcRunnable(description, args));
-    vlcThread.start(); 
-   
+
+    new VlcRunnable(description, args).run();    
   }
 
 }

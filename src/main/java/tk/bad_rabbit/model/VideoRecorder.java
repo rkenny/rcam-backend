@@ -1,20 +1,18 @@
 package tk.bad_rabbit.model;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import tk.bad_rabbit.interfaces.Cleanup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
-public class VideoRecorder implements Serializable {
+public class VideoRecorder implements Serializable, Cleanup {
   /**
    * Create a VideoRecorder by accessing /record, set duration via JSON
    */
@@ -22,9 +20,18 @@ public class VideoRecorder implements Serializable {
   @JsonProperty
   private Integer duration;
   private List<VideoSource> videoSources;
+  VideoMosaicer videoMosaicer;
+  ExecutorService executorService;
+  CountDownLatch startLatch;
   
   public VideoRecorder() {
     videoSources = new ArrayList<VideoSource>();
+    executorService = Executors.newFixedThreadPool(5);
+  }
+  
+  public void prepareToRecord(List<VideoSource> videoSources) {
+    videoMosaicer = new VideoMosaicer(duration, videoSources);
+    this.setVideoSources(videoSources);
   }
   
   public void setVideoSources(List<VideoSource> videoSources) {
@@ -53,18 +60,44 @@ public class VideoRecorder implements Serializable {
   public String toString() {
     return "Video will record for " + duration + " seconds";
   }
-  // 
-
-  public void beginRecording() throws InterruptedException {
-    CountDownLatch startLatch = new CountDownLatch(1);
-    CountDownLatch shutdownLatch = new CountDownLatch(videoSources.size());
-    
+  
+  public void beginRecording(CountDownLatch shutdownLatch) {
+    startLatch = new CountDownLatch(1);
     for(VideoSource videoSource : videoSources) {
-//      videoSource.beginRecording(duration);
-      videoSource.getLatchedRecordingThread(duration, startLatch, shutdownLatch).start();
+      executorService.execute(videoSource.createVlcRunnable(duration, startLatch, shutdownLatch));
     }
-    Thread.sleep(200);
-    startLatch.countDown();
-    shutdownLatch.await();    
+    try {
+      Thread.sleep(200);
+      startLatch.countDown();
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+  
+  public void createOutputVideo() {
+    executorService.execute(new Runnable() {
+      public void run() {
+        CountDownLatch shutdownLatch = new CountDownLatch(videoSources.size());
+        beginRecording(shutdownLatch);
+        try {
+          shutdownLatch.await();
+        } catch (InterruptedException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        videoMosaicer.createMosaic();
+        cleanup();
+      }
+    });
+    
+    
+  }
+
+  public void cleanup() {
+    videoMosaicer.cleanup();
+    for(VideoSource videoSource : videoSources) {
+      videoSource.cleanup();
+    }    
   }
 }
