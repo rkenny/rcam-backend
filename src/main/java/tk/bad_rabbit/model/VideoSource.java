@@ -67,7 +67,7 @@ public class VideoSource implements Cleanup {
     args.add(videoSource);
     args.add("vlc://quit");
     args.add("--sout");
-    args.add("#transcode{vcodec=mp4v,acodec=mpga,vb=800}:std{access=file,mux=ts,dst="+destFileName+"}");
+    args.add("#transcode{vcodec=h264,acodec=mp3,samplerate=44100,channels=1}:std{access=file,mux=ps,dst="+destFileName+"}");
 
     final String description =  "VideoSource:["+videoSource+"] destFile:["+destFileName+"]";
     return new VlcRunnable(description, args, startLatch, shutdownLatch);

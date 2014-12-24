@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import tk.bad_rabbit.App;
+import tk.bad_rabbit.interfaces.VideoManager;
 import tk.bad_rabbit.model.Video;
 
 @Path(value = "/videos")
@@ -21,10 +22,12 @@ public class Videos {
   @GET
   public String sendVideoList() {
     System.out.println("Sending video list to client");
-    Video videoTest = new Video();
+    VideoManager videoManager = new VideoManager();
+    
     String videoJson = "{}";
     try {
-      videoJson = mapper.writeValueAsString(videoTest);
+      System.out.println("getting videos" + videoManager.getAllVideos());
+      videoJson = mapper.writeValueAsString(videoManager.getAllVideos());
     } catch (JsonGenerationException e) {
       Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, e);
       System.out.println("json generation exception");
