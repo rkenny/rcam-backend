@@ -8,7 +8,8 @@ import java.util.List;
 import tk.bad_rabbit.model.Video;
 
 public class VideoManager {
-  final String videoPath = "./videos";
+  final String videoPath = "/usr/share/nginx/html/videos";
+  final String videoUrlPrefix = "rtmp://localhost/live/";
   List<Video> videos;
   
   public VideoManager() {
@@ -20,7 +21,7 @@ public class VideoManager {
     File videoFolder = new File(videoPath);
     File[] videoFilesArray = videoFolder.listFiles();
     for(File videoFile : videoFilesArray) {
-      videos.add(new Video(videoFile));
+      videos.add(new Video(videoFile, videoUrlPrefix));
     }
   }
   

@@ -9,7 +9,9 @@ import tk.bad_rabbit.vlc.VlcRunnable;
 
 public class VideoMosaicer implements Cleanup {
   
-  final String outputPath = "outputs.mpg";
+  final String outputPath = "/usr/share/nginx/html/videos/";
+  final String currentTimeMs = Long.toString(System.currentTimeMillis());
+  final String outputFilename = "outputs-" + currentTimeMs;
   List<VideoSource> videoSources;
   VideoMosaicConfigurator configurator;
   Integer duration;
@@ -26,7 +28,7 @@ public class VideoMosaicer implements Cleanup {
   public VideoMosaicer(Integer duration, List<VideoSource> videoSources) {
     this.duration = duration;
     this.videoSources = videoSources;
-    this.configurator = new VideoMosaicConfigurator(videoSources, outputPath);
+    this.configurator = new VideoMosaicConfigurator(videoSources, outputPath + outputFilename);
   }
   
   public void createMosaic() {

@@ -35,7 +35,7 @@ public class VideoMosaicConfigurator {
     StringBuilder backgroundChannelSb = new StringBuilder();
     backgroundChannelSb.append("new background broadcast\n");
     backgroundChannelSb.append("setup background input \""+Paths.backgroundImagePath+"\"\n");
-    backgroundChannelSb.append("setup background output #transcode{sfilter=mosaic,vcodec=mp4v,vb=5000}:bridge-in{delay=0}:standard{access=file,mux=ts,dst=\""+outputPath+"\"}\n");
+    backgroundChannelSb.append("setup background output #transcode{sfilter=mosaic,vcodec=h264,acodec=mp3,samplerate=22050,vb=5000,channels=1}:bridge-in{delay=0}:standard{access=file,mux=ps,dst=\""+outputPath+"\"}\n");
     backgroundChannelSb.append("setup background option image-duration=-1\n");
     backgroundChannelSb.append("setup background option image-fps=15\n");
     backgroundChannelSb.append("setup background option mosaic-keep-picture=1\n");

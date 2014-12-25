@@ -54,6 +54,7 @@ public class VideoSource implements Cleanup {
     
     vlmChannelSb.append("new " + channelId + " broadcast\n");
     vlmChannelSb.append("setup " + channelId + " input \"" + destFileName + "\"\n");
+    //vlmChannelSb.append("setup " + channelId + " output #duplicate{dst=mosaic-bridge{id="+videoSourceId+",height=640,width=480},select=video,dst=bridge-out{id="+videoSourceId+"},select=audio}\n"); 
     vlmChannelSb.append("setup " + channelId + " output #duplicate{dst=mosaic-bridge{id="+videoSourceId+",height=640,width=480},select=video,dst=bridge-out{id="+videoSourceId+"},select=audio}\n");
     vlmChannelSb.append("setup " + channelId + " enabled\n");
     return vlmChannelSb.toString();
@@ -65,9 +66,12 @@ public class VideoSource implements Cleanup {
     args.add("--run-time");
     args.add(duration.toString());
     args.add(videoSource);
+    // TEMPORARY
+    args.add("--input-slave=alsa://plughw:0,0");
+    // END TEMPORARY
     args.add("vlc://quit");
     args.add("--sout");
-    args.add("#transcode{vcodec=h264,acodec=mp3,samplerate=44100,channels=1}:std{access=file,mux=ps,dst="+destFileName+"}");
+    args.add("#transcode{vcodec=h264,acodec=mp3,samplerate=22050,channels=1}:std{access=file,mux=ps,dst="+destFileName+"}");
 
     final String description =  "VideoSource:["+videoSource+"] destFile:["+destFileName+"]";
     return new VlcRunnable(description, args, startLatch, shutdownLatch);

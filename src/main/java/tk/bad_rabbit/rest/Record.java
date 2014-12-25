@@ -3,7 +3,6 @@ package tk.bad_rabbit.rest;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -24,9 +23,9 @@ public class Record {
   public Response beginRecording(VideoRecorder recorder) throws Exception {
     
     List<VideoSource> videoSources = new ArrayList<VideoSource>();
-    //videoSources.add(new VideoSource("rtsp://192.168.1.139:8086", "samsungPhone.mpg"));
-    videoSources.add(new VideoSource("v4l2:///dev/video1", "video1.mpg"));
-    videoSources.add(new VideoSource("http://192.168.1.2:8080/?action=stream", "stream.mpg"));
+    String currentTimeMs = Long.toString(System.currentTimeMillis());
+    videoSources.add(new VideoSource("v4l2:///dev/video1", "video1-" + currentTimeMs));
+    videoSources.add(new VideoSource("http://192.168.1.2:8080/?action=stream", "ion1-"+currentTimeMs));
     recorder.prepareToRecord(videoSources);
     recorder.createOutputVideo();
     

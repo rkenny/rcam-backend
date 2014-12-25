@@ -24,10 +24,10 @@ public class Video {
 //    streams.add("http://www.youtube.com/embed/pHcF7iC984U?version=3&enablejsapi=1");
   }
   
-  public Video(File videoFile) {
+  public Video(File videoFile, String videoUrlPrefix) {
     this();
     thumbnail = "http://www.gifwave.com/media/355224/panda-animals-playing-stupid-posing_200s.gif";
-    streams.add("videos/"+videoFile.getName());
+    streams.add(videoUrlPrefix + videoFile.getName());
   }
   
   
