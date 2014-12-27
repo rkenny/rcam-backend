@@ -10,6 +10,10 @@ import tk.bad_rabbit.model.Video;
 public class VideoManager {
   final String videoPath = "/usr/share/nginx/html/videos";
   final String videoUrlPrefix = "rtmp://localhost/live/";
+  final String thumbnailUrlPrefix = "http://localhost/videos/";
+  final String videoFilename = "video";
+  final String thumbnailFilename = "thumbnail.png";
+  
   List<Video> videos;
   
   public VideoManager() {
@@ -18,10 +22,10 @@ public class VideoManager {
   
   private void populateVideos() {
     videos = new ArrayList<Video>();
-    File videoFolder = new File(videoPath);
-    File[] videoFilesArray = videoFolder.listFiles();
-    for(File videoFile : videoFilesArray) {
-      videos.add(new Video(videoFile, videoUrlPrefix));
+    File videoFolders = new File(videoPath);
+    File[] videoFoldersArray = videoFolders.listFiles(); // gets the list of video+thumbnails, in a folder named their creationTime
+    for(File videoFolder : videoFoldersArray) {
+      videos.add(new Video(videoFolder, videoUrlPrefix, thumbnailUrlPrefix, videoFilename, thumbnailFilename));
     }
   }
   

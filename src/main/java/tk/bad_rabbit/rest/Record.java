@@ -26,12 +26,16 @@ public class Record {
     String currentTimeMs = Long.toString(System.currentTimeMillis());
     videoSources.add(new VideoSource("v4l2:///dev/video1", "video1-" + currentTimeMs));
     videoSources.add(new VideoSource("http://192.168.1.2:8080/?action=stream", "ion1-"+currentTimeMs));
-    recorder.prepareToRecord(videoSources);
-    recorder.createOutputVideo();
+    try {
+      recorder.setVideoSources(videoSources);
+      recorder.prepareFolders();
+      recorder.createOutputVideo();
+      recorder.createThumbnails();
+    } catch(Exception e) {
+      return Response.status(500).entity("Recording error").build();
+    }
     
     System.out.println("Done recording");
-    //  return Response.status(500).entity("Recording error").build();
-    
     return Response.status(200).entity(recorder.toString()).build();
   }
 }

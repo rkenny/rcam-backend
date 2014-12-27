@@ -1,5 +1,6 @@
 package tk.bad_rabbit.model;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,20 +21,19 @@ public class VideoRecorder implements Serializable, Cleanup {
   @JsonProperty
   private Integer duration;
   private List<VideoSource> videoSources;
-  VideoMosaicer videoMosaicer;
   ExecutorService executorService;
   CountDownLatch startLatch;
+  
+  final String currentTimeMs = Long.toString(System.currentTimeMillis());
+  final String outputPath = "/usr/share/nginx/html/videos/" + currentTimeMs;
+  final String videoFilename = "video";
+  final String thumbnailFilename = "thumbnail";
   
   public VideoRecorder() {
     videoSources = new ArrayList<VideoSource>();
     executorService = Executors.newFixedThreadPool(5);
   }
-  
-  public void prepareToRecord(List<VideoSource> videoSources) {
-    videoMosaicer = new VideoMosaicer(duration, videoSources);
-    this.setVideoSources(videoSources);
-  }
-  
+    
   public void setVideoSources(List<VideoSource> videoSources) {
     this.videoSources = videoSources;
   }
@@ -61,10 +61,18 @@ public class VideoRecorder implements Serializable, Cleanup {
     return "Video will record for " + duration + " seconds";
   }
   
+  public void prepareFolders() throws SecurityException {
+    File outputFolder = new File(outputPath);
+    if(!outputFolder.exists()) {
+      outputFolder.mkdir();
+    }
+    
+  }
+  
   public void beginRecording(CountDownLatch shutdownLatch) {
     startLatch = new CountDownLatch(1);
     for(VideoSource videoSource : videoSources) {
-      executorService.execute(videoSource.createVlcRunnable(duration, startLatch, shutdownLatch));
+      executorService.execute(videoSource.createRunnable(duration, startLatch, shutdownLatch));
     }
     try {
       Thread.sleep(200);
@@ -76,6 +84,9 @@ public class VideoRecorder implements Serializable, Cleanup {
   }
   
   public void createOutputVideo() {
+    // the videoSource.record() part can be better encapsulated inside a VideoSources object
+    // and still block until the last recording is done, before creating the mosaic
+    //then cleaning up themselves, instead of VideoRecorder cleaning them up.
     executorService.execute(new Runnable() {
       public void run() {
         CountDownLatch shutdownLatch = new CountDownLatch(videoSources.size());
@@ -86,16 +97,20 @@ public class VideoRecorder implements Serializable, Cleanup {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
-        videoMosaicer.createMosaic();
+        new VideoMosaicer(duration, videoSources, outputPath, videoFilename).createMosaic().cleanup();
         cleanup();
       }
     });
-    
-    
+  }
+
+  public void createThumbnails() {
+    VideoThumbnailler videoThumbNailler = new VideoThumbnailler(outputPath, videoFilename, thumbnailFilename);
+    videoThumbNailler.setOutputHeight(200);
+    videoThumbNailler.setOutputWidth(320);
+    executorService.execute(videoThumbNailler.createRunnable());
   }
 
   public void cleanup() {
-    videoMosaicer.cleanup();
     for(VideoSource videoSource : videoSources) {
       videoSource.cleanup();
     }    

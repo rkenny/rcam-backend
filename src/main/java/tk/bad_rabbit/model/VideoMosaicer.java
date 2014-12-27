@@ -9,12 +9,13 @@ import tk.bad_rabbit.vlc.VlcRunnable;
 
 public class VideoMosaicer implements Cleanup {
   
-  final String outputPath = "/usr/share/nginx/html/videos/";
-  final String currentTimeMs = Long.toString(System.currentTimeMillis());
-  final String outputFilename = "outputs-" + currentTimeMs;
   List<VideoSource> videoSources;
   VideoMosaicConfigurator configurator;
   Integer duration;
+  
+  String outputPath;
+  String outputFilename;
+  
   
   final Integer mosaicWidth=960;
   final Integer mosaicHeight=640;
@@ -25,15 +26,22 @@ public class VideoMosaicer implements Cleanup {
   final Integer imageFps=15;
   final String telnetPassword="password";
   
+  public VideoMosaicer(Integer duration, List<VideoSource> videoSources, String outputPath, String outputFilename) {
+    this(duration, videoSources);
+    this.outputPath = outputPath;
+    this.outputFilename = outputFilename;
+  }
+  
   public VideoMosaicer(Integer duration, List<VideoSource> videoSources) {
     this.duration = duration;
     this.videoSources = videoSources;
     this.configurator = new VideoMosaicConfigurator(videoSources, outputPath + outputFilename);
   }
   
-  public void createMosaic() {
+  public VideoMosaicer createMosaic() {
     configurator.createConfFile();
     buildMosaic();
+    return this;
   }
   
   public void cleanup() {

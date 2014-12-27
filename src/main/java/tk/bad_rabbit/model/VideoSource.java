@@ -60,7 +60,7 @@ public class VideoSource implements Cleanup {
     return vlmChannelSb.toString();
   }
   
-  public VlcRunnable createVlcRunnable(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
+  public VlcRunnable createRunnable(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
     List<String> args = new ArrayList<String>();
     args.add("--rc-fake-tty");
     args.add("--run-time");

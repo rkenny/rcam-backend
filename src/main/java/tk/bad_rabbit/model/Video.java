@@ -18,15 +18,12 @@ public class Video {
   
   public Video() {
     streams = new ArrayList<String>();
-//    thumbnail = "http://www.gifwave.com/media/355224/panda-animals-playing-stupid-posing_200s.gif";
-//    streams.add("http://www.youtube.com/embed/j1Al9KzhQUw?version=3&enablejsapi=1");
-//    streams.add("http://www.youtube.com/embed/mmlTByKgX6w?version=3&enablejsapi=1");
-//    streams.add("http://www.youtube.com/embed/pHcF7iC984U?version=3&enablejsapi=1");
+
   }
   
-  public Video(File videoFile, String videoUrlPrefix) {
+  public Video(File videoFile, String videoUrlPrefix, String thumbnailUrlPrefix, String videoName, String thumbnailName) {
     this();
-    thumbnail = "http://www.gifwave.com/media/355224/panda-animals-playing-stupid-posing_200s.gif";
+    thumbnail = thumbnailUrlPrefix + videoFile.getName() + "/" + thumbnailName;
     streams.add(videoUrlPrefix + videoFile.getName());
   }
   
