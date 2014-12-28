@@ -14,10 +14,10 @@ public class ResponseCorsFilter implements ContainerResponseFilter {
     MultivaluedMap<String, Object> responseHeaders = responseContext.getHeaders();
     responseHeaders.add("Access-Control-Allow-Origin", "*");
     responseHeaders.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-
+    responseHeaders.add("Access-Control-Allow-Headers", "Content-Type");
     MultivaluedMap<String, String> requestHeaders = requestContext.getHeaders();
-    if(null != requestHeaders && (requestHeaders.get("Access-Control-Request-Headers") != null)) {
-      responseHeaders.add("Access-Control-Allow-Headers", requestHeaders.get("Access-Control-Request-Headers"));
-    }
+    //if(null != requestHeaders && (requestHeaders.get("Access-Control-Request-Headers") != null)) {
+    //  responseHeaders.add("Access-Control-Allow-Headers", requestHeaders.get("Access-Control-Request-Headers"));
+     // }
   }
 }

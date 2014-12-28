@@ -67,7 +67,7 @@ public class VideoSource implements Cleanup {
     args.add(duration.toString());
     args.add(videoSource);
     // TEMPORARY
-    args.add("--input-slave=alsa://plughw:0,0");
+    //args.add("--input-slave=alsa://plughw:0,0");
     // END TEMPORARY
     args.add("vlc://quit");
     args.add("--sout");

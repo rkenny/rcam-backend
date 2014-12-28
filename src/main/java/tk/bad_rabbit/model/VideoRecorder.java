@@ -25,7 +25,7 @@ public class VideoRecorder implements Serializable, Cleanup {
   CountDownLatch startLatch;
   
   final String currentTimeMs = Long.toString(System.currentTimeMillis());
-  final String outputPath = "/usr/share/nginx/html/videos/" + currentTimeMs;
+  final String outputPath = "/usr/share/nginx/html/videos/" + currentTimeMs + "/";
   final String videoFilename = "video";
   final String thumbnailFilename = "thumbnail";
   
@@ -87,6 +87,13 @@ public class VideoRecorder implements Serializable, Cleanup {
     // the videoSource.record() part can be better encapsulated inside a VideoSources object
     // and still block until the last recording is done, before creating the mosaic
     //then cleaning up themselves, instead of VideoRecorder cleaning them up.
+    
+    // like this:
+    // VideoSources videoSources
+    // VideoMosaicer videoMosaicer
+    //executorService.execute(videoSources.record());
+    //executorService.execute(videoMosaicer.createMosaic());
+    //videoSources.cleanup();
     executorService.execute(new Runnable() {
       public void run() {
         CountDownLatch shutdownLatch = new CountDownLatch(videoSources.size());
@@ -98,6 +105,7 @@ public class VideoRecorder implements Serializable, Cleanup {
           e.printStackTrace();
         }
         new VideoMosaicer(duration, videoSources, outputPath, videoFilename).createMosaic().cleanup();
+        createThumbnails();
         cleanup();
       }
     });

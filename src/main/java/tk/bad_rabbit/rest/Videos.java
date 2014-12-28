@@ -26,7 +26,6 @@ public class Videos {
     
     String videoJson = "{}";
     try {
-      System.out.println("getting videos" + videoManager.getAllVideos());
       videoJson = mapper.writeValueAsString(videoManager.getAllVideos());
     } catch (JsonGenerationException e) {
       Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, e);

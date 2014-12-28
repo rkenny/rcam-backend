@@ -50,7 +50,7 @@ public class VlcRunnable implements Runnable {
       BufferedReader input = new BufferedReader (new InputStreamReader(p.getInputStream()));
     
       while ((line = input.readLine()) != null) {
-        System.out.println(line);
+        //System.out.println(line); // discard debugging output
       }
       input.close();
     } catch (IOException e) {

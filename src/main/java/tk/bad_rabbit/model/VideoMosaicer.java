@@ -35,10 +35,10 @@ public class VideoMosaicer implements Cleanup {
   public VideoMosaicer(Integer duration, List<VideoSource> videoSources) {
     this.duration = duration;
     this.videoSources = videoSources;
-    this.configurator = new VideoMosaicConfigurator(videoSources, outputPath + outputFilename);
   }
   
   public VideoMosaicer createMosaic() {
+    this.configurator = new VideoMosaicConfigurator(videoSources, outputPath + outputFilename);
     configurator.createConfFile();
     buildMosaic();
     return this;
