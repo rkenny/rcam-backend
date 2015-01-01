@@ -29,6 +29,7 @@ public class Record {
     
     videoSources.add(new VideoSource("v4l2:///dev/video1", "video1-" + currentTimeMs));
     videoSources.add(new VideoSource("http://192.168.1.2:8080/?action=stream", "ion1-"+currentTimeMs));
+    
     try {
       recorder.setVideoSources(videoSources);
       recorder.prepareFolders();

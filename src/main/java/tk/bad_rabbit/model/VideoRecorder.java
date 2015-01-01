@@ -8,10 +8,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import tk.bad_rabbit.iface.ApplicationConfiguration;
 import tk.bad_rabbit.interfaces.Cleanup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 public class VideoRecorder implements Serializable, Cleanup {
   /**
@@ -24,8 +27,11 @@ public class VideoRecorder implements Serializable, Cleanup {
   ExecutorService executorService;
   CountDownLatch startLatch;
   
+  @Autowired
+  ApplicationConfiguration applicationConfiguration;
+  
   final String currentTimeMs = Long.toString(System.currentTimeMillis());
-  final String outputPath = "/usr/share/nginx/html/videos/" + currentTimeMs + "/";
+  final String outputPath = applicationConfiguration.getVideoPath() + currentTimeMs + "/";
   final String videoFilename = "video";
   final String thumbnailFilename = "thumbnail";
   

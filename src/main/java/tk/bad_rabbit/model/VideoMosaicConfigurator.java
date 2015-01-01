@@ -10,11 +10,13 @@ import java.nio.file.Files;
 import java.util.List;
 
 import tk.bad_rabbit.Paths;
+import tk.bad_rabbit.interfaces.Cleanup;
 
-public class VideoMosaicConfigurator {
+public class VideoMosaicConfigurator implements Cleanup {
   List<VideoSource> videoSources;
   final String vlmPath = "mosaic.vlm.conf";
   String outputPath;
+  
   public void cleanup() {
     try {
       Files.deleteIfExists(FileSystems.getDefault().getPath(".", vlmPath));

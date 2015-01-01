@@ -7,6 +7,10 @@ import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,16 +18,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import tk.bad_rabbit.App;
 import tk.bad_rabbit.interfaces.VideoManager;
 import tk.bad_rabbit.model.Video;
+import tk.bad_rabbit.vlc.iface.VlcConfiguration;;
 
 @Path(value = "/videos")
 public class Videos {
- ObjectMapper mapper = new ObjectMapper();
+  ObjectMapper mapper = new ObjectMapper();
+ 
+  @Autowired
+  VideoManager videoManager;
   
   @GET
   public String sendVideoList() {
     System.out.println("Sending video list to client");
-    VideoManager videoManager = new VideoManager();
-    
     String videoJson = "{}";
     try {
       videoJson = mapper.writeValueAsString(videoManager.getAllVideos());
@@ -40,7 +46,7 @@ public class Videos {
       System.out.println("io exception");
       e.printStackTrace();
     }
-    
-    return videoJson;
+  
+  return videoJson;
   }
 }

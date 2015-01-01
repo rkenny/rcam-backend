@@ -1,27 +1,27 @@
 package tk.bad_rabbit;
 import java.io.IOException;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-/**
- * This is the example entry point, where Jersey application for the example
- * gets populated and published using the Grizzly 2 HTTP container.
- *
- * @author Marek Potociar (marek.potociar at oracle.com)
- */
 public class App {
-
 	/**
 	 * Main application entry point.
 	 *
 	 * @param args application arguments.
 	 */
 	public static void main(String[] args) {
+	  //String configFilename = "rcam.conf";
+	  //ApplicationContext applicationContext = new ClassPathXmlApplicationContext("/spring.xml");;
+	  
+	  //ApplicationConfiguration applicationConfiguration = new ApplicationConfiguration(configFilename);
+	  //VlcConfiguration vlcConfiguration = applicationConfiguration.newVlcConfiguration();
+	  //HttpdConfiguration httpdConfiguration = applicationConfiguration.newHttpdConfiguration();
+	  
 		try {
 			System.out.println("\"Hello World\" Jersey Example App");
 			
