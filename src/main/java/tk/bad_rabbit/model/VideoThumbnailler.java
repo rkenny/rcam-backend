@@ -14,6 +14,7 @@ public class VideoThumbnailler {
   Integer outputWidth;
   
   public VideoThumbnailler(String videoPath, String videoFilename, String thumbnailFilename) {
+    this();
     this.videoPath = videoPath;
     this.videoFilename = videoFilename;
     this.thumbnailFilename = thumbnailFilename;
@@ -21,6 +22,21 @@ public class VideoThumbnailler {
     outputHeight = 200;
     outputWidth = 320;
   }
+  
+  public VideoThumbnailler() {}
+  
+  public void setOutputFile(String outputFilename) {
+    this.thumbnailFilename = outputFilename;
+  }
+  
+  public void setOutputPath(String outputPath) {
+    this.videoPath = outputPath;
+  }
+  
+  public void setInputFile(String inputFile) {
+    this.videoFilename = inputFile;
+  }
+  
   
   public void setOutputHeight(Integer outputHeight) {
     this.outputHeight = outputHeight;
@@ -51,12 +67,6 @@ public class VideoThumbnailler {
     new VlcRunnable(description, args).run();    
   }
   
-  public Runnable createRunnable() {
-    return new Runnable() {
-      public void run() {
-        createThumbnail();
-      }
-    };
-  }
+
   
 }

@@ -1,9 +1,6 @@
 package tk.bad_rabbit.vlc;
 
 import java.io.BufferedReader;
-
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -11,11 +8,17 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import tk.bad_rabbit.vlc.iface.VlcConfiguration;
 
-@Service
+@Component
+@Configuration
 public class VlcRunnable implements Runnable {
   String threadDescription;
   List<String> args = new ArrayList<String>();
@@ -39,13 +42,14 @@ public class VlcRunnable implements Runnable {
   
   public VlcRunnable(String threadDescription, List<String> args) {
     this(threadDescription);
-    this.args.add(vlcConfiguration.getPath());
+    //this.args.add(vlcConfiguration.getPath());
     this.args.addAll(args);
   }
   
   public VlcRunnable(String threadDescription) {
     this();
     this.threadDescription = threadDescription;
+    SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
   }
   
   public VlcRunnable() {
@@ -54,10 +58,14 @@ public class VlcRunnable implements Runnable {
   
   private void runVlcProcess() {
     String line;
+    List<String> finalArgs = new ArrayList<String>();
 
+    finalArgs.add(vlcConfiguration.getPath());
+    finalArgs.addAll(args);
+    
     try {
-      System.out.println(args);
-      ProcessBuilder pb = new ProcessBuilder(args.toArray(new String[args.size()]));
+      System.out.println(finalArgs);
+      ProcessBuilder pb = new ProcessBuilder(finalArgs.toArray(new String[finalArgs.size()]));
       pb.redirectErrorStream(true);
       Process p = pb.start();
       BufferedReader input = new BufferedReader (new InputStreamReader(p.getInputStream()));

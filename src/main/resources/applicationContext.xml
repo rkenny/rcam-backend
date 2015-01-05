@@ -13,6 +13,10 @@
   <context:component-scan base-package="tk.bad_rabbit.vlc.impl"></context:component-scan>
   <context:component-scan base-package="tk.bad_rabbit.impl"></context:component-scan>
   <context:component-scan base-package="tk.bad_rabbit.interfaces"></context:component-scan>
+  <context:component-scan base-package="tk.bad_rabbit.rest"></context:component-scan>
+  <context:component-scan base-package="tk.bad_rabbit.model"></context:component-scan>
+  <context:component-scan base-package="tk.bad_rabbit.vlc"></context:component-scan>
+  
         
   <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
     <property name="ignoreUnresolvablePlaceholders" value="true" />
@@ -25,5 +29,10 @@
       </list>
     </property>
    </bean>
+   
+   <bean class="tk.bad_rabbit.vlc.VlcRunnable" id="vlcRunnable">
+   </bean>
+   
+   
    
 </beans>

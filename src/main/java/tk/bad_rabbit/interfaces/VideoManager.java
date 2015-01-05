@@ -31,6 +31,7 @@ public class VideoManager {
   
   List<Video> videos;
   
+  // why is this working? - Find out.
   @PostConstruct
   public void initVideoManager() {
     videoPath = applicationConfiguration.getVideoPath();
@@ -51,9 +52,6 @@ public class VideoManager {
   }
   
   public List<Video> getAllVideos() {
-
-    System.out.println((applicationConfiguration != null) + " == aC != null");
-    System.out.println(applicationConfiguration.getVideoPath());
     return videos;
   }
 }

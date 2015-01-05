@@ -4,18 +4,23 @@ package tk.bad_rabbit.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
+
 import tk.bad_rabbit.interfaces.Cleanup;
 import tk.bad_rabbit.vlc.VlcRunnable;
 
+@Component
+@Configuration
 public class VideoMosaicer implements Cleanup {
+  List<VlcChannel> vlcChannels;
   
-  List<VideoSource> videoSources;
-  VideoMosaicConfigurator configurator;
-  Integer duration;
+  
+  VideoMosaicConfigurator configurator; 
   
   String outputPath;
   String outputFilename;
-  
   
   final Integer mosaicWidth=960;
   final Integer mosaicHeight=640;
@@ -25,22 +30,20 @@ public class VideoMosaicer implements Cleanup {
   StringBuilder mosaicOrder = new StringBuilder();
   final Integer imageFps=15;
   final String telnetPassword="password";
-  
-  public VideoMosaicer(Integer duration, List<VideoSource> videoSources, String outputPath, String outputFilename) {
-    this(duration, videoSources);
-    this.outputPath = outputPath;
-    this.outputFilename = outputFilename;
+
+  public VideoMosaicer() {
+    SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+
   }
   
-  public VideoMosaicer(Integer duration, List<VideoSource> videoSources) {
-    this.duration = duration;
-    this.videoSources = videoSources;
-  }
-  
-  public VideoMosaicer createMosaic() {
-    this.configurator = new VideoMosaicConfigurator(videoSources, outputPath + outputFilename);
+  public void prepareConfigurationForSources(List<VlcChannel> vlcChannels) {
+    this.vlcChannels = vlcChannels;
+    this.configurator = new VideoMosaicConfigurator(vlcChannels, outputPath, outputFilename);
     configurator.createConfFile();
-    buildMosaic();
+  }
+  
+  public VideoMosaicer createMosaic(Integer duration) {
+    buildMosaic(duration);
     return this;
   }
   
@@ -48,10 +51,19 @@ public class VideoMosaicer implements Cleanup {
     configurator.cleanup();
   }
   
-  public void buildMosaic() {
-    
-    for(VideoSource videoSource : videoSources) {
-      mosaicOrder.append(videoSource.getChannelId() + ",");
+
+  public void setOutputFolder(String outputFolder) {
+    this.outputPath = outputFolder;
+  }
+  
+  public void setOutputFilename(String outputFilename) {
+    this.outputFilename = outputFilename;
+  }
+  
+  public void buildMosaic(Integer duration) {
+    System.out.println("Building a mosaic for " + vlcChannels.size());
+    for(VlcChannel vlcChannel : vlcChannels) {
+      mosaicOrder.append(vlcChannel.getChannelId() + ",");
     }
     mosaicOrder.deleteCharAt(mosaicOrder.length() - 1);
     

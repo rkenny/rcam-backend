@@ -11,6 +11,18 @@ public class ApplicationConfigurationImpl implements ApplicationConfiguration {
   @Value("${httpd.videoPath}")
   String videoPath = "";
   
+  
+  @Value("${system.tempPath}")
+  String tempPath = "";
+  
+  public String getTempPath() {
+    return tempPath;
+  }
+  
+  public void setTempPath(String tempPath) {
+    this.tempPath = tempPath;
+  }
+  
   public String getVideoPath() {
     return videoPath;
   }

@@ -1,58 +1,73 @@
 package tk.bad_rabbit.model;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.PostConstruct;
+
 import tk.bad_rabbit.iface.ApplicationConfiguration;
-import tk.bad_rabbit.interfaces.Cleanup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
-public class VideoRecorder implements Serializable, Cleanup {
+@Component
+@Configuration
+public class VideoRecorder implements Serializable {
   /**
    * Create a VideoRecorder by accessing /record, set duration via JSON
    */
   private static final long serialVersionUID = 6952325964443377011L;
-  @JsonProperty
-  private Integer duration;
-  private List<VideoSource> videoSources;
-  ExecutorService executorService;
-  CountDownLatch startLatch;
   
+  @JsonProperty("duration")
+  private Integer duration;
+
   @Autowired
   ApplicationConfiguration applicationConfiguration;
   
-  final String currentTimeMs = Long.toString(System.currentTimeMillis());
-  final String outputPath = applicationConfiguration.getVideoPath() + currentTimeMs + "/";
+  VideoSources videoSources;
+  VideoMosaicer videoMosaicer;
+  ExecutorService executorService;
+
+  String tempPath;
+  String outputPath;
+  
   final String videoFilename = "video";
   final String thumbnailFilename = "thumbnail";
+  String suffix;
+  
+  public void setTempPath(String tempPath) {
+    this.tempPath = tempPath;
+  }
+  
+  public void setOutputPath(String outputPath) {
+    this.outputPath = outputPath;
+  }
+  
+  public VideoRecorder(Integer duration) {
+    this();
+    setDuration(duration);
+  }
   
   public VideoRecorder() {
-    videoSources = new ArrayList<VideoSource>();
+    videoSources = new VideoSources();
     executorService = Executors.newFixedThreadPool(5);
-  }
-    
-  public void setVideoSources(List<VideoSource> videoSources) {
-    this.videoSources = videoSources;
+
+    SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
   }
   
-  public void addVideoSource(VideoSource videoSource) {
-    this.videoSources.add(videoSource);
-  }
-  
-  public void addVideoSource(String videoSource) {
-    this.videoSources.add(new VideoSource(videoSource));
-  }
-  
-  public List<VideoSource> getVideoSources() {
+  public VideoSources getVideoSources() {
     return videoSources;
   }
   
@@ -62,71 +77,83 @@ public class VideoRecorder implements Serializable, Cleanup {
   
   public Integer getDuration() { return duration; }
   
+  public void classCheck() {
+    System.out.println("Class check");
+    System.out.println(tempPath);
+    System.out.println(outputPath);
+  }
+  
   @Override
   public String toString() {
+    classCheck();
     return "Video will record for " + duration + " seconds";
   }
   
-  public void prepareFolders() throws SecurityException {
-    File outputFolder = new File(outputPath);
+  public void prepareFolders(String pathToPrepare) throws SecurityException {
+    File outputFolder = new File(pathToPrepare);
     if(!outputFolder.exists()) {
       outputFolder.mkdir();
     }
-    
   }
   
-  public void beginRecording(CountDownLatch shutdownLatch) {
-    startLatch = new CountDownLatch(1);
-    for(VideoSource videoSource : videoSources) {
-      executorService.execute(videoSource.createRunnable(duration, startLatch, shutdownLatch));
-    }
+  public void setRecordingSuffix(String suffix) {
+    this.suffix = suffix;
+    videoSources.setRecordingSuffix(suffix);
+  }
+  
+  public String createOutputFolderPath() {
+    return outputPath + suffix + "/";
+  }
+  
+  public String createTempFolderPath() {
+    return tempPath + suffix + "/";
+  }
+  
+  public void createOutputVideo() {
+
+    executorService.execute(new Runnable() {
+      public void run() {
+        prepareFolders(createTempFolderPath());
+        recordVideos();  // blocks until all recordings are complete
+        createMosaic(); // blocks until mosaic complete        
+        createThumbnails();
+        
+        videoSources.cleanup();
+        moveFiles(createTempFolderPath(), createOutputFolderPath());
+      }
+    });
+  }
+  
+  public void moveFiles(String inputFolderPath, String outputFolderPath) {
     try {
-      Thread.sleep(200);
-      startLatch.countDown();
-    } catch (InterruptedException e) {
+      Files.move(Paths.get(inputFolderPath), Paths.get(outputFolderPath), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
   
-  public void createOutputVideo() {
-    // the videoSource.record() part can be better encapsulated inside a VideoSources object
-    // and still block until the last recording is done, before creating the mosaic
-    //then cleaning up themselves, instead of VideoRecorder cleaning them up.
-    
-    // like this:
-    // VideoSources videoSources
-    // VideoMosaicer videoMosaicer
-    //executorService.execute(videoSources.record());
-    //executorService.execute(videoMosaicer.createMosaic());
-    //videoSources.cleanup();
-    executorService.execute(new Runnable() {
-      public void run() {
-        CountDownLatch shutdownLatch = new CountDownLatch(videoSources.size());
-        beginRecording(shutdownLatch);
-        try {
-          shutdownLatch.await();
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        new VideoMosaicer(duration, videoSources, outputPath, videoFilename).createMosaic().cleanup();
-        createThumbnails();
-        cleanup();
-      }
-    });
+  public void createMosaic() {
+    VideoMosaicer videoMosaicer = new VideoMosaicer();
+    videoMosaicer.setOutputFolder(createTempFolderPath());
+    videoMosaicer.setOutputFilename(videoFilename);
+    videoMosaicer.prepareConfigurationForSources(videoSources.getMosaicChannels());
+    videoMosaicer.createMosaic(duration);
+    videoMosaicer.cleanup();
+  }
+  
+  public void recordVideos() {
+    videoSources.setOutputFolder(createTempFolderPath());
+    videoSources.record(duration);
   }
 
   public void createThumbnails() {
-    VideoThumbnailler videoThumbNailler = new VideoThumbnailler(outputPath, videoFilename, thumbnailFilename);
+    VideoThumbnailler videoThumbNailler = new VideoThumbnailler();
+    videoThumbNailler.setOutputPath(createTempFolderPath());
+    videoThumbNailler.setInputFile(videoFilename);
+    videoThumbNailler.setOutputFile(thumbnailFilename);
     videoThumbNailler.setOutputHeight(200);
     videoThumbNailler.setOutputWidth(320);
-    executorService.execute(videoThumbNailler.createRunnable());
-  }
-
-  public void cleanup() {
-    for(VideoSource videoSource : videoSources) {
-      videoSource.cleanup();
-    }    
+    videoThumbNailler.createThumbnail();
   }
 }

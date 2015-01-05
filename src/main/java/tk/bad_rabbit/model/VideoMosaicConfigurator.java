@@ -13,9 +13,12 @@ import tk.bad_rabbit.Paths;
 import tk.bad_rabbit.interfaces.Cleanup;
 
 public class VideoMosaicConfigurator implements Cleanup {
-  List<VideoSource> videoSources;
+  List<VlcChannel> vlcChannels;
   final String vlmPath = "mosaic.vlm.conf";
+  
   String outputPath;
+  String outputFilename;
+  
   
   public void cleanup() {
     try {
@@ -27,9 +30,14 @@ public class VideoMosaicConfigurator implements Cleanup {
   }
   public String getVlmPath() { return vlmPath; }
   
-  public VideoMosaicConfigurator(List<VideoSource> videoSources, String outputPath) {
-    this.videoSources = videoSources;
-    this.outputPath = outputPath; 
+  public VideoMosaicConfigurator(List<VlcChannel> vlcChannels, String outputPath, String outputFilename) {
+    this.vlcChannels = vlcChannels;
+    this.outputPath = outputPath;
+    this.outputFilename = outputFilename;
+  }
+  
+  public String createOutputFileName() {
+    return outputPath + outputFilename;
   }
   
   private String createBackgroundChannel() {
@@ -37,26 +45,28 @@ public class VideoMosaicConfigurator implements Cleanup {
     StringBuilder backgroundChannelSb = new StringBuilder();
     backgroundChannelSb.append("new background broadcast\n");
     backgroundChannelSb.append("setup background input \""+Paths.backgroundImagePath+"\"\n");
-    backgroundChannelSb.append("setup background output #transcode{sfilter=mosaic,vcodec=h264,acodec=mp3,samplerate=22050,vb=5000,channels=1}:bridge-in{delay=0}:standard{access=file,mux=ps,dst=\""+outputPath+"\"}\n");
+    backgroundChannelSb.append("setup background output #transcode{sfilter=mosaic,vcodec=h264,acodec=mp3,samplerate=22050,vb=5000,channels=1}:bridge-in{delay=0}:standard{access=file,mux=ps,dst=\""+createOutputFileName()+"\"}\n");
     backgroundChannelSb.append("setup background option image-duration=-1\n");
     backgroundChannelSb.append("setup background option image-fps=15\n");
     backgroundChannelSb.append("setup background option mosaic-keep-picture=1\n");
     backgroundChannelSb.append("setup background option mosaic-order=");
-    for(VideoSource videoSource : videoSources) {
-      backgroundChannelSb.append(videoSource.getChannelId() + ",");
+    for(VlcChannel vlcChannel : vlcChannels) {
+      backgroundChannelSb.append(vlcChannel.getChannelId() + ",");
     }
     backgroundChannelSb.setCharAt(backgroundChannelSb.length() - 1, '\n');
     backgroundChannelSb.append("setup background option mosaic-position=1\n");
     backgroundChannelSb.append("setup background enabled\n");
     
+    
+    System.out.println(backgroundChannelSb.toString());
     return backgroundChannelSb.toString();
   }
   
   public String createChannelPlayers() {
     StringBuilder createChannelPlayersSb = new StringBuilder();
     createChannelPlayersSb.append("control background play\n");
-    for(VideoSource videoSource : videoSources) {
-      createChannelPlayersSb.append("control "+videoSource.getChannelId()+ " play\n");
+    for(VlcChannel vlcChannel : vlcChannels) {
+      createChannelPlayersSb.append("control "+vlcChannel.getChannelId()+ " play\n");
     }
     
     return createChannelPlayersSb.toString();
@@ -67,8 +77,8 @@ public class VideoMosaicConfigurator implements Cleanup {
     Writer writer = null;
     try {
       writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(vlmPath), "utf-8"));
-      for(VideoSource videoSource : videoSources) {
-        writer.write(videoSource.createVlmChannel());
+      for(VlcChannel vlcChannel : vlcChannels) {
+        writer.write(vlcChannel.createVlmChannel());
       }
       writer.write(createBackgroundChannel());
       writer.write(createChannelPlayers());

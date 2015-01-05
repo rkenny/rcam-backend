@@ -8,15 +8,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
 import tk.bad_rabbit.interfaces.Cleanup;
 import tk.bad_rabbit.vlc.VlcRunnable;
 
+@Component
+@Configuration
 public class VideoSource implements Cleanup {
   private String videoSource;
+  
+  private String outputFolder;
   private String destFileName;
+  private String destFileExtension = ".mpg";
+  private String suffix = "";
+  
   private String channelId;
   private Integer videoSourceId;
   private static Integer VideoSourceIdCount = 0;
+  
   public VideoSource(String videoSource, String destFileName) {
     this(videoSource);
     setDestFileName(destFileName);
@@ -25,12 +36,16 @@ public class VideoSource implements Cleanup {
   public VideoSource(String videoSource) {
     this();
     setVideoSource(videoSource);
-    destFileName = new Date().getTime() +".mpg";
+    destFileName = new Date().getTime() + destFileExtension;
   }
 
   public VideoSource() {
     this.videoSourceId = VideoSourceIdCount++;
     this.channelId = "channel" + videoSourceId;
+  }
+  
+  public void setOutputFolder(String outputFolder) {
+    this.outputFolder = outputFolder;
   }
   
   public void setDestFileName(String destFileName) {
@@ -49,18 +64,20 @@ public class VideoSource implements Cleanup {
     return channelId;
   }
   
-  public String createVlmChannel() {
-    StringBuilder vlmChannelSb = new StringBuilder();
-    
-    vlmChannelSb.append("new " + channelId + " broadcast\n");
-    vlmChannelSb.append("setup " + channelId + " input \"" + destFileName + "\"\n");
-    //vlmChannelSb.append("setup " + channelId + " output #duplicate{dst=mosaic-bridge{id="+videoSourceId+",height=640,width=480},select=video,dst=bridge-out{id="+videoSourceId+"},select=audio}\n"); 
-    vlmChannelSb.append("setup " + channelId + " output #duplicate{dst=mosaic-bridge{id="+videoSourceId+",height=640,width=480},select=video,dst=bridge-out{id="+videoSourceId+"},select=audio}\n");
-    vlmChannelSb.append("setup " + channelId + " enabled\n");
-    return vlmChannelSb.toString();
+  public String createFilename() {
+    return outputFolder + destFileName + suffix +  destFileExtension;
   }
   
-  public VlcRunnable createRunnable(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
+  public void setRecordingSuffix(String suffix) {
+    this.suffix = suffix;
+  }
+
+  public VlcChannel createVlmChannel() {
+    System.out.println("Creating vlm channel");
+    return new VlcChannel(channelId, videoSourceId, createFilename());
+  }
+  
+  public VlcRunnable createRecordingRunnable(Integer duration, CountDownLatch startLatch, CountDownLatch shutdownLatch) {
     List<String> args = new ArrayList<String>();
     args.add("--rc-fake-tty");
     args.add("--run-time");
@@ -71,15 +88,15 @@ public class VideoSource implements Cleanup {
     // END TEMPORARY
     args.add("vlc://quit");
     args.add("--sout");
-    args.add("#transcode{vcodec=h264,acodec=mp3,samplerate=22050,channels=1}:std{access=file,mux=ps,dst="+destFileName+"}");
+    args.add("#transcode{vcodec=h264,acodec=mp3,samplerate=22050,channels=1}:std{access=file,mux=ps,dst="+createFilename()+"}");
 
-    final String description =  "VideoSource:["+videoSource+"] destFile:["+destFileName+"]";
+    final String description =  "VideoSource:["+videoSource+"] destFile:["+ createFilename() +"]";
     return new VlcRunnable(description, args, startLatch, shutdownLatch);
   }
   
   public void cleanup() {
     try {
-      Files.deleteIfExists(FileSystems.getDefault().getPath(".", destFileName));
+      Files.deleteIfExists(FileSystems.getDefault().getPath(".", createFilename()));
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
