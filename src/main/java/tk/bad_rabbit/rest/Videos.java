@@ -10,6 +10,7 @@ import javax.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -20,6 +21,8 @@ import tk.bad_rabbit.interfaces.VideoManager;
 import tk.bad_rabbit.model.Video;
 import tk.bad_rabbit.vlc.iface.VlcConfiguration;;
 
+//@Path(value = "/videos")
+@Component
 @Path(value = "/videos")
 public class Videos {
   ObjectMapper mapper = new ObjectMapper();

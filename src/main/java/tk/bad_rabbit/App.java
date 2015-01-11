@@ -32,9 +32,7 @@ public class App {
 			//RCamApplication resourceConfig = new RCamApplication();
 			AppResources appResources = new AppResources();
 			appResources.unpack();
-			
-	
-			
+					
 			WebappContext ctx = new WebappContext("ctx", "/base");
 			ctx.addContextInitParameter("contextConfigLocation", "classpath:/applicationContext.xml");
 			ctx.addListener("org.springframework.web.context.ContextLoaderListener");

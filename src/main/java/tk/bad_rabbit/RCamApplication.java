@@ -4,6 +4,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
 import tk.bad_rabbit.impl.ApplicationConfigurationImpl;
+import tk.bad_rabbit.rest.ResponseCorsFilter;
 
 public class RCamApplication extends ResourceConfig {
   
