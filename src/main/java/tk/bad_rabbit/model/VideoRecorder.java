@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,9 +34,6 @@ public class VideoRecorder implements Serializable {
   
   @JsonProperty("duration")
   private Integer duration;
-
-  @Autowired
-  ApplicationConfiguration applicationConfiguration;
   
   VideoSources videoSources;
   VideoMosaicer videoMosaicer;
@@ -60,11 +59,8 @@ public class VideoRecorder implements Serializable {
     setDuration(duration);
   }
   
-  public VideoRecorder() {
-    videoSources = new VideoSources();
+  public VideoRecorder() {    
     executorService = Executors.newFixedThreadPool(5);
-
-    SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
   }
   
   public VideoSources getVideoSources() {
@@ -77,15 +73,9 @@ public class VideoRecorder implements Serializable {
   
   public Integer getDuration() { return duration; }
   
-  public void classCheck() {
-    System.out.println("Class check");
-    System.out.println(tempPath);
-    System.out.println(outputPath);
-  }
-  
+ 
   @Override
   public String toString() {
-    classCheck();
     return "Video will record for " + duration + " seconds";
   }
   
@@ -100,6 +90,12 @@ public class VideoRecorder implements Serializable {
     this.suffix = suffix;
     videoSources.setRecordingSuffix(suffix);
   }
+  
+  public void setVideoSources(List<Map.Entry<String, String>> configVideoSources) {
+    videoSources = new VideoSources();
+    videoSources.setVideoSources(configVideoSources);
+  }
+  
   
   public String createOutputFolderPath() {
     return outputPath + suffix + "/";

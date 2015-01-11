@@ -3,14 +3,19 @@ package tk.bad_rabbit.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
+
+import tk.bad_rabbit.iface.ApplicationConfiguration;
 
 @Component
 @Configuration
@@ -19,13 +24,21 @@ public class VideoSources implements Iterable<VideoSource> {
   CountDownLatch startLatch;
   ExecutorService executorService;
   String outputFolder;
-    
+
+  
+  public VideoSources(String videoSourceIdentifiers, String videoSourceUris) {
+    this();
+  }
+  
   public VideoSources() {
     videoSources = new ArrayList<VideoSource>();
-    
-    manuallyInitialize();
-    
     executorService = Executors.newFixedThreadPool(5);
+  }
+  
+  public void setVideoSources(List<Map.Entry<String, String>> configVideoSources) {
+    for(Map.Entry<String, String> configVideoSource : configVideoSources) {
+      this.videoSources.add(new VideoSource(configVideoSource.getValue(), configVideoSource.getKey()));
+    }
   }
   
   public void setOutputFolder(String outputFolder) {
@@ -39,10 +52,6 @@ public class VideoSources implements Iterable<VideoSource> {
     return outputFolder;
   }
   
-  public void setVideoSources(List<VideoSource> videoSources) {
-    this.videoSources = videoSources;
-  }
-  
   public void add(VideoSource videoSource) {
     this.videoSources.add(videoSource);
   }
@@ -52,13 +61,6 @@ public class VideoSources implements Iterable<VideoSource> {
       videoSource.setRecordingSuffix(suffix);
     }
   }
-  
-  public void manuallyInitialize() {
-    videoSources.add(new VideoSource("v4l2:///dev/video1", "video1"));
-    videoSources.add(new VideoSource("v4l2:///dev/video1", "video12"));
-    //videoSources.add(new VideoSource("http://192.168.1.2:8080/?action=stream", "ion1"));
-  }
-  
   
   public void record(Integer duration) {
     startLatch = new CountDownLatch(1);

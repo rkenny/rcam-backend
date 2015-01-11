@@ -37,8 +37,10 @@ public class Record {
     String currentTimeMs = Long.toString(System.currentTimeMillis());
     System.out.println("Client requested a recording at " + currentTimeMs + " for " + recorder.getDuration() + "s");
     
+    //fix this coupling.
     recorder.setTempPath(applicationConfiguration.getTempPath());
     recorder.setOutputPath(applicationConfiguration.getVideoPath());
+    recorder.setVideoSources(applicationConfiguration.getVideoSources());
     
     recorder.toString();
        

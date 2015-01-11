@@ -29,7 +29,6 @@ public class VideoManager {
   String videoFilename;
   String thumbnailFilename;
   
-  List<Video> videos;
   
   // why is this working? - Find out.
   @PostConstruct
@@ -39,19 +38,16 @@ public class VideoManager {
     thumbnailUrlPrefix = "http://localhost/videos/";
     videoFilename = "video";
     thumbnailFilename = "thumbnail.png";      
-    populateVideos();
   }
-  
-  private void populateVideos() {
-    videos = new ArrayList<Video>();
+   
+  public List<Video> getAllVideos() {
+    List<Video> videos = new ArrayList<Video>();
     File videoFolders = new File(videoPath);
     File[] videoFoldersArray = videoFolders.listFiles(); // gets the list of video+thumbnails, in a folder named their creationTime
     for(File videoFolder : videoFoldersArray) {
       videos.add(new Video(videoFolder, videoUrlPrefix, thumbnailUrlPrefix, videoFilename, thumbnailFilename));
     }
-  }
-  
-  public List<Video> getAllVideos() {
+    
     return videos;
   }
 }
